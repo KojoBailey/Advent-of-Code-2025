@@ -7,7 +7,7 @@ class Instruction(NamedTuple):
 
 class DialTurn(NamedTuple):
     n: int
-    clickCount: int
+    click_count: int
 
 def turn_dial(direction: str, x: int, dx: int) -> DialTurn:
     sign: int
@@ -18,8 +18,8 @@ def turn_dial(direction: str, x: int, dx: int) -> DialTurn:
     subtraction: int = x + sign * dx
     X_MAX: int = 100
     clamp: int = subtraction % X_MAX
-    clickCount: int = abs(math.floor(subtraction / 100))
-    return DialTurn(clamp, clickCount)
+    click_count: int = abs(math.floor(subtraction / 100))
+    return DialTurn(clamp, click_count)
 
 def test_turn_dial():
     assert turn_dial('L', 50, 20) == DialTurn(30, 0) 
@@ -78,7 +78,7 @@ def calculate_click_password(path: str) -> int:
 
     acc: int = 0
     for instruction in instructions:
-        acc += instruction.clickCount
+        acc += instruction.click_count
 
     return acc
 
