@@ -1,32 +1,43 @@
 from typing import NamedTuple
-
-def turn_dial(direction: str, x: int, dx: int) -> int:
-    sign: int
-    match direction:
-        case 'L': sign = -1
-        case 'R': sign = 1
-    
-    X_MAX = 100
-    return (x + sign * dx) % X_MAX
-
-def test_turn_dial():
-    assert turn_dial('L', 50, 20) == 30
-    assert turn_dial('L', 50, 80) == 70
-    assert turn_dial('R', 50, 20) == 70
-    assert turn_dial('R', 50, 80) == 30
-    assert turn_dial('R', 50, 50) == 0
+import math
 
 class Instruction(NamedTuple):
     direction: str
     n: int
 
-def evaluate_instructions(start: int, instructions: list[Instruction]) -> list[int]:
-    result: list[int] = []
+class DialTurn(NamedTuple):
+    n: int
+    clickCount: int
+
+def turn_dial(direction: str, x: int, dx: int) -> DialTurn:
+    sign: int
+    match direction:
+        case 'L': sign = -1
+        case 'R': sign = 1
+    
+    subtraction: int = x + sign * dx
+    X_MAX: int = 100
+    clamp: int = subtraction % X_MAX
+    clickCount: int = abs(math.floor(subtraction / 100))
+    return DialTurn(clamp, clickCount)
+
+def test_turn_dial():
+    assert turn_dial('L', 50, 20) == DialTurn(30, 0) 
+    assert turn_dial('L', 50, 80) == DialTurn(70, 1) 
+    assert turn_dial('R', 50, 20) == DialTurn(70, 0) 
+    assert turn_dial('R', 50, 80) == DialTurn(30, 1) 
+    assert turn_dial('R', 50, 50) == DialTurn(0, 1) 
+    assert turn_dial('R', 50, 500) == DialTurn(50, 5) 
+
+def evaluate_instructions(start: int, instructions: list[Instruction]) -> list[DialTurn]:
+    result: list[DialTurn] = []
     buffer: int = start
+    buffer2: DialTurn
 
     for instruction in instructions:
-        buffer = turn_dial(instruction.direction, buffer, instruction.n)
-        result.append(buffer)
+        buffer2 = turn_dial(instruction.direction, buffer, instruction.n)
+        buffer = buffer2.n
+        result.append(buffer2)
     
     return result
 
@@ -48,14 +59,32 @@ def parse_instructions(raw_instructions: list[str]) -> list[Instruction]:
     return result
 
 def calculate_password(path: str) -> int:
-    DIAL_START = 50
-    raw_instructions = load_raw_instructions(path)
-    parsed_instructions = parse_instructions(raw_instructions)
-    instructions = evaluate_instructions(DIAL_START, parsed_instructions)
-    return instructions.count(0)
+    DIAL_START: int = 50
+    raw_instructions: list[str] = load_raw_instructions(path)
+    parsed_instructions: list[Instruction] = parse_instructions(raw_instructions)
+    instructions: list[DialTurn] = evaluate_instructions(DIAL_START, parsed_instructions)
+
+    acc: int = 0
+    for instruction in instructions:
+        if instruction.n == 0: acc += 1
+
+    return acc
+
+def calculate_click_password(path: str) -> int:
+    DIAL_START: int = 50
+    raw_instructions: list[str] = load_raw_instructions(path)
+    parsed_instructions: list[Instruction] = parse_instructions(raw_instructions)
+    instructions: list[DialTurn] = evaluate_instructions(DIAL_START, parsed_instructions)
+
+    acc: int = 0
+    for instruction in instructions:
+        acc += instruction.clickCount
+
+    return acc
 
 
 # main
 test_turn_dial()
 
 print(calculate_password("./Day 1/input.txt"))
+print(calculate_click_password("./Day 1/input.txt"))
