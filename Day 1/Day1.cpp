@@ -7,6 +7,13 @@
 
 class Dial {
 public:
+	enum class Direction { Left, Right };
+
+	struct Instruction {
+		Direction direction;
+		size_t amount;
+	};
+
 	size_t number() const
 	{
 		return m_number;
@@ -17,20 +24,20 @@ public:
 		return m_click_count;
 	}
 
-	auto turn(const char direction, const size_t amount)
-	-> std::expected<void, std::string>
+	void set(size_t number)
 	{
-		const auto sign_buffer = std::invoke([&]() -> std::expected<int, std::string> {
+		m_number = number;
+	}
+
+	void turn(const Direction direction, const size_t amount)
+	{
+		const auto sign = std::invoke([&]() -> int {
 			switch (direction) {
-			case 'L': return -1;
-			case 'R': return 1;
-			default: return std::unexpected{"Invalid direction input. Must be 'L' or 'R'."};
+			case Direction::Left: return -1;
+			case Direction::Right: return 1;
 			}
+			return 0; // Avoid no-default-case warning.
 		});
-		if (!sign_buffer) {
-			return std::unexpected{sign_buffer.error()};
-		}
-		const int sign = *sign_buffer;
 
 		const size_t subtraction = m_number + sign * amount;
 		const size_t clamp = subtraction % max_number;
@@ -38,8 +45,13 @@ public:
 
 		m_number = clamp;
 		m_click_count += click_count;
+	}
 
-		return {};
+	void sequence_turns(std::vector<Instruction>& instructions)
+	{
+		for (auto& instruction : instructions) {
+			turn(instruction.direction, instruction.amount);
+		}
 	}
 
 private:
@@ -53,14 +65,14 @@ void test_dial()
 {
 	Dial dial;
 	assert(dial.number() == 50);
-	dial.turn('R', 30);
+	dial.turn(Dial::Direction::Right, 30);
 	assert(dial.number() == 80);
-	dial.turn('L', 80);
+	dial.turn(Dial::Direction::Left, 80);
 	assert(dial.number() == 0);
-	dial.turn('R', 550);
+	dial.turn(Dial::Direction::Right, 550);
 	assert(dial.number() == 50);
 	assert(dial.click_count() == 5);
-	dial.turn('R', 50);
+	dial.turn(Dial::Direction::Right, 50);
 	assert(dial.click_count() == 6);
 }
 
