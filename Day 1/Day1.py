@@ -14,6 +14,7 @@ def test_turn_dial():
     assert turn_dial('L', 50, 80) == 70
     assert turn_dial('R', 50, 20) == 70
     assert turn_dial('R', 50, 80) == 30
+    assert turn_dial('R', 50, 50) == 0
 
 class Instruction(NamedTuple):
     direction: str
@@ -46,12 +47,15 @@ def parse_instructions(raw_instructions: list[str]) -> list[Instruction]:
     
     return result
 
+def calculate_password(path: str) -> int:
+    DIAL_START = 50
+    raw_instructions = load_raw_instructions(path)
+    parsed_instructions = parse_instructions(raw_instructions)
+    instructions = evaluate_instructions(DIAL_START, parsed_instructions)
+    return instructions.count(0)
+
+
 # main
 test_turn_dial()
 
-raw_instructions = load_raw_instructions("./Day 1/input.txt")
-parsed_instructions = parse_instructions(raw_instructions)
-print(parsed_instructions)
-
-instructions = evaluate_instructions(50, [Instruction('R', 30), Instruction('R', 55), Instruction('L', 67)])
-print(instructions)
+print(calculate_password("./Day 1/input.txt"))
