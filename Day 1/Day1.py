@@ -27,7 +27,7 @@ def test_turn_dial():
     assert turn_dial('R', 50, 20) == DialTurn(70, 0) 
     assert turn_dial('R', 50, 80) == DialTurn(30, 1) 
     assert turn_dial('R', 50, 50) == DialTurn(0, 1) 
-    assert turn_dial('R', 50, 500) == DialTurn(50, 5) 
+    assert turn_dial('R', 5, 500) == DialTurn(5, 5) 
 
 def evaluate_instructions(start: int, instructions: list[Instruction]) -> list[DialTurn]:
     result: list[DialTurn] = []
