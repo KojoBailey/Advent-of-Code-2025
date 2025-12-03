@@ -48,11 +48,6 @@ calculateClickPassword path = do
     zeroCount instructions = foldr (\(_, clicks) acc -> acc + clicks) 0 $ evaluateClickInstructions start instructions
     start = 50
 
-listClickInstructions :: String -> IO [(Int, Int)]
-listClickInstructions path = do
-  instructions <- loadInstructions path
-  pure $ evaluateClickInstructions 50 instructions
-
 evaluateClickInstructions :: Int -> [(Char, Int)] -> [(Int, Int)]
 evaluateClickInstructions _ [] = []
 evaluateClickInstructions x ((dir, n):rest) =
