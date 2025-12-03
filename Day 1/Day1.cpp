@@ -1,7 +1,9 @@
 #include <iostream>
+#include <cassert>
 #include <cstdint>
 #include <cmath>
 #include <expected>
+#include <functional>
 
 class Dial {
 public:
@@ -18,17 +20,17 @@ public:
 	auto turn(const char direction, const size_t amount)
 	-> std::expected<void, std::string>
 	{
-		int sign;
-		switch (direction) {
-		case 'L':
-			sign = -1;
-			break;
-		case 'R':
-			sign = 1;
-			break;
-		default:
-			return std::unexpected{"Invalid direction input. Must be 'L' or 'R'."};
+		const auto sign_buffer = std::invoke([&]() -> std::expected<int, std::string> {
+			switch (direction) {
+			case 'L': return -1;
+			case 'R': return 1;
+			default: return std::unexpected{"Invalid direction input. Must be 'L' or 'R'."};
+			}
+		});
+		if (!sign_buffer) {
+			return std::unexpected{sign_buffer.error()};
 		}
+		const int sign = *sign_buffer;
 
 		const size_t subtraction = m_number + sign * amount;
 		const size_t clamp = subtraction % max_number;
@@ -47,10 +49,22 @@ private:
 	size_t m_click_count{0};
 };
 
-int main()
+void test_dial()
 {
 	Dial dial;
-	std::cout << dial.number() << " -> ";
+	assert(dial.number() == 50);
 	dial.turn('R', 30);
-	std::cout << dial.number() << '\n';
+	assert(dial.number() == 80);
+	dial.turn('L', 80);
+	assert(dial.number() == 0);
+	dial.turn('R', 550);
+	assert(dial.number() == 50);
+	assert(dial.click_count() == 5);
+	dial.turn('R', 50);
+	assert(dial.click_count() == 6);
+}
+
+int main()
+{
+	test_dial();
 }
